@@ -29,8 +29,8 @@ def generate_stock_chart(stock_symbol: str, days: int = 90,
 
     # Instantiate the Alpaca historical data client
     alpaca_client = StockHistoricalDataClient(
-        api_key=os.getenv("ALPACA_API_KEY"),
-        secret_key=os.getenv("ALPACA_SECRET_KEY"),
+        api_key=os.getenv("ALPACA_KEY"),
+        secret_key=os.getenv("ALPACA_SECRET"),
         raw_data=False,
     )
 
