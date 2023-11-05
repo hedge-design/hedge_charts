@@ -84,6 +84,7 @@ def generate_stock_chart_png(
 
     # Save the figure as a PNG file
     png_filename = f"{stock_symbol}_chart_{timeframe_str}_{days}.png"
+    png_filename = '/tmp/' + png_filename
     fig.write_image(png_filename)
 
     return png_filename
