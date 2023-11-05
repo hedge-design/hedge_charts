@@ -23,7 +23,7 @@ TIMEFRAME_MAPPING = {
 
 # Function to create a Plotly figure for the stock chart
 def generate_stock_chart(stock_symbol: str, days: int = 90,
-                         timeframe_str: str = "1D"):
+                         timeframe_str: str = "1D", dark_mode: bool = True):
     # Convert the string timeframe to a TimeFrame object
     timeframe = TIMEFRAME_MAPPING.get(timeframe_str, TimeFrame.Day)
 
@@ -52,12 +52,25 @@ def generate_stock_chart(stock_symbol: str, days: int = 90,
     df = bars.df
     df = df.reset_index(level='symbol', drop=True)
     # Create a Plotly graph object
-    fig = go.Figure(data=[go.Scatter(x=df.index, y=df.close)])
+    # fig = go.Figure(data=[go.Scatter(x=df.index, y=df.close)])
+    fig = go.Figure(data=[go.Candlestick(x=df.index,
+                                         open=df.open,
+                                         high=df.high,
+                                         low=df.low,
+                                         close=df.close)])
     fig.update_layout(
         title=f"{stock_symbol} Stock Price",
-        xaxis_title="Date",
-        yaxis_title="Price (USD)",
+        # yaxis_title="Price (USD)",
+        xaxis=dict(
+            rangeslider=dict(
+                visible=False  # This disables the rangeslider
+            ),
+            # title="Date",
+            type='date'  # Ensure the x-axis is treated as a date
+        )
     )
+    if dark_mode:
+        fig.update_layout(template="plotly_dark")
 
     return fig
 
@@ -70,7 +83,7 @@ def generate_stock_chart_png(
     fig = generate_stock_chart(stock_symbol, days, timeframe_str)
 
     # Save the figure as a PNG file
-    png_filename = f"{stock_symbol}_chart_{timeframe_str}.png"
+    png_filename = f"{stock_symbol}_chart_{timeframe_str}_{days}.png"
     fig.write_image(png_filename)
 
     return png_filename
