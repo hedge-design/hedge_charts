@@ -13,10 +13,10 @@ load_dotenv()
 # Mapping from string to Alpaca TimeFrame
 TIMEFRAME_MAPPING = {
     "1Min": TimeFrame.Minute,
-    "5Min": TimeFrame.FiveMinutes,
-    "15Min": TimeFrame.FifteenMinutes,
+    # "5Min": TimeFrame.FiveMinutes,
+    # "15Min": TimeFrame.FifteenMinutes,
     "1D": TimeFrame.Day,
-    "1W": TimeFrame.Week,
+    # "1W": TimeFrame.Week,
     # Add more mappings if needed
 }
 
@@ -48,13 +48,11 @@ def generate_stock_chart(stock_symbol: str, days: int = 90,
 
     # Fetch the historical stock data
     bars = alpaca_client.get_stock_bars(request_params)
-
     # Extract the data for plotting
-    dates = [bar.timestamp for bar in bars]
-    closes = [bar.close for bar in bars]
-
+    df = bars.df
+    df = df.reset_index(level='symbol', drop=True)
     # Create a Plotly graph object
-    fig = go.Figure(data=[go.Scatter(x=dates, y=closes)])
+    fig = go.Figure(data=[go.Scatter(x=df.index, y=df.close)])
     fig.update_layout(
         title=f"{stock_symbol} Stock Price",
         xaxis_title="Date",
