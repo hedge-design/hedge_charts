@@ -22,8 +22,14 @@ TIMEFRAME_MAPPING = {
 
 
 # Function to create a Plotly figure for the stock chart
-def generate_stock_chart(stock_symbol: str, days: int = 90,
-                         timeframe_str: str = "1D", dark_mode: bool = True):
+def generate_stock_chart(
+    stock_symbol: str,
+    days: int = 90,
+    timeframe_str: str = "1D",
+    dark_mode: bool = True,
+    candlestick: bool = False,
+    show_after_hours: bool = False,
+):
     # Convert the string timeframe to a TimeFrame object
     timeframe = TIMEFRAME_MAPPING.get(timeframe_str, TimeFrame.Day)
 
@@ -50,24 +56,44 @@ def generate_stock_chart(stock_symbol: str, days: int = 90,
     bars = alpaca_client.get_stock_bars(request_params)
     # Extract the data for plotting
     df = bars.df
-    df = df.reset_index(level='symbol', drop=True)
+    df = df.reset_index(level="symbol", drop=True)
     # Create a Plotly graph object
+
     # fig = go.Figure(data=[go.Scatter(x=df.index, y=df.close)])
-    fig = go.Figure(data=[go.Candlestick(x=df.index,
-                                         open=df.open,
-                                         high=df.high,
-                                         low=df.low,
-                                         close=df.close)])
+    if candlestick:
+        fig = go.Figure(
+            data=[
+                go.Candlestick(
+                    x=df.index, open=df.open, high=df.high, low=df.low, close=df.close
+                )
+            ]
+        )
+    else:
+        fig = go.Figure(data=[go.Scatter(x=df.index, y=df.close)])
+
+    if not show_after_hours:
+        fig.update_xaxes(
+            rangebreaks=[
+                dict(bounds=["sat", "mon"]),  # hide weekends
+                dict(
+                    bounds=[16, 9.5], pattern="hour"
+                ),  # hide hours outside of 9.5am-4pm
+            ]
+        )
+
+    last_price = df.close[-1].round(2)
     fig.update_layout(
-        title=f"{stock_symbol} Stock Price",
+        title=f"{stock_symbol} ${last_price}",  # Set the title
         # yaxis_title="Price (USD)",
         xaxis=dict(
-            rangeslider=dict(
-                visible=False  # This disables the rangeslider
-            ),
+            fixedrange=True,
+            rangeslider=dict(visible=False),  # This disables the rangeslider
             # title="Date",
-            type='date'  # Ensure the x-axis is treated as a date
-        )
+            type="date",  # Ensure the x-axis is treated as a date
+        ),
+        yaxis=dict(
+            fixedrange=True,
+        ),
     )
     if dark_mode:
         fig.update_layout(template="plotly_dark")
@@ -84,7 +110,7 @@ def generate_stock_chart_png(
 
     # Save the figure as a PNG file
     png_filename = f"{stock_symbol}_chart_{timeframe_str}_{days}.png"
-    png_filename = '/tmp/' + png_filename
+    png_filename = "/tmp/" + png_filename
     fig.write_image(png_filename)
 
     return png_filename
