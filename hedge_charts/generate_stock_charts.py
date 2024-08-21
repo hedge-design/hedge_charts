@@ -81,7 +81,7 @@ def generate_stock_chart(
             ]
         )
 
-    last_price = df.close[-1].round(2)
+    last_price = df.close.iloc[-1].round(2)
     fig.update_layout(
         title=f"{stock_symbol} ${last_price}",  # Set the title
         # yaxis_title="Price (USD)",
